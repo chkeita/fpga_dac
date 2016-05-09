@@ -1,0 +1,91 @@
+Skip to content
+This repository
+Search
+Pull requests
+Issues
+Gist
+ @kcheick
+ Watch 1,609
+  Star 35,609
+  Fork 13,518 github/gitignore
+ Code  Pull requests 115  Pulse  Graphs
+Branch: master Find file Copy pathgitignore/Global/XilinxISE.gitignore
+bf84550  Dec 6, 2015
+@stephengroat stephengroat Update to include iMPACT and Core Generator files
+2 contributors @stephengroat @ogier
+RawBlameHistory     68 lines (63 sloc)  723 Bytes
+# intermediate build files
+*.bgn
+*.bit
+*.bld
+*.cmd_log
+*.drc
+*.ll
+*.lso
+*.msd
+*.msk
+*.ncd
+*.ngc
+*.ngd
+*.ngr
+*.pad
+*.par
+*.pcf
+*.prj
+*.ptwx
+*.rbb
+*.rbd
+*.stx
+*.syr
+*.twr
+*.twx
+*.unroutes
+*.ut
+*.xpi
+*.xst
+*_bitgen.xwbt
+*_envsettings.html
+*_map.map
+*_map.mrp
+*_map.ngm
+*_map.xrpt
+*_ngdbuild.xrpt
+*_pad.csv
+*_pad.txt
+*_par.xrpt
+*_summary.html
+*_summary.xml
+*_usage.xml
+*_xst.xrpt
+
+# iMPACT generated files
+_impactbatch.log
+impact.xsl
+impact_impact.xwbt
+ise_impact.cmd
+webtalk_impact.xml
+
+# Core Generator generated files
+xaw2verilog.log
+
+# project-wide generated files
+*.gise
+par_usage_statistics.html
+usage_statistics_webtalk.html
+webtalk.log
+webtalk_pn.xml
+
+# generated folders
+iseconfig/
+xlnx_auto_0_xdb/
+xst/
+_ngo/
+_xmsgs/
+Status API Training Shop Blog About
+© 2016 GitHub, Inc. Terms Privacy Security Contact Help
+
+
+/syn
+/work
+*.mti
+

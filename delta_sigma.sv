@@ -20,7 +20,6 @@ module delta_sigma #(parameter DATA_SIZE = 32) (
         SigmaAdder_q <= SigmaAdder_d;        
 
 	if (counter == 0) begin 
-
             // reset adders 
             DeltaAdder_d <= 2'b11 << DATA_SIZE + data; /// mask and datas
             SigmaAdder_d <= 2'b01 << DATA_SIZE;

@@ -88,5 +88,8 @@ Status API Training Shop Blog About
 /syn
 *.mti
 *.bak
+/work/*.qtl
+/work/*.qpg
+/work/*.qdb
 
 

@@ -91,5 +91,6 @@ Status API Training Shop Blog About
 /work/*.qtl
 /work/*.qpg
 /work/*.qdb
+*.wlf
 
 

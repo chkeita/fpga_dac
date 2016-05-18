@@ -17,22 +17,23 @@ module delta_sigma #(parameter DATA_SIZE = 32) (
 
     always @(posedge clk) begin
         DeltaAdder_q <= DeltaAdder_d;
-        SigmaAdder_q <= SigmaAdder_d;        
+        SigmaAdder_q <= SigmaAdder_d;
 
 	if (counter == 0) begin 
             // reset adders 
-            DeltaAdder_d <= 2'b11 << DATA_SIZE + data; /// mask and datas
-            SigmaAdder_d <= 2'b01 << DATA_SIZE;
+            DeltaAdder_d = (2'b11 << DATA_SIZE) + data; /// mask and datas
+            SigmaAdder_d = 2'b01 << DATA_SIZE;
         end
 
        if (dataOut == 0)begin
-           DeltaAdder_d <= 0;
+           DeltaAdder_d = 0;
        end
        else begin
-           DeltaAdder_d <= 2'b11 << DATA_SIZE;
+           DeltaAdder_d = 2'b11 << DATA_SIZE;
            //1?scomplement of the highest N bit number, sign-extendedto N+2 bits
        end
-       SigmaAdder_d <= SigmaAdder_d + dataOut;
+       SigmaAdder_d = SigmaAdder_d + dataOut;
+       counter = counter +1;
 
     end
 

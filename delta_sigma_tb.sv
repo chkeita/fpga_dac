@@ -3,26 +3,19 @@
 module deltaSigma_tb (
     );
     
-    reg clk;
+    reg clk = 0;
     reg [2:0] data = 3'b011;
-    reg reset;
+    reg reset = 0;
     wire dataOut;
     
-// initial begin 
-//     assign clk     = 0;
-//     assign reset   = 0;
-//     assign dataOut = 0;
-// end
-
 always begin
     #10
     clk <= ~clk;
 end
     
-
 delta_sigma #(.DATA_SIZE(3)) dut  (
     .data(data),
-    .clk(clkl),
+    .clk(clk),
     .reset(reset),
     .dataOut(dataOut)
 );

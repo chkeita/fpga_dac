@@ -8,6 +8,8 @@ module deltaSigma_tb (
     reg reset = 0;
     wire dataOut;
     
+
+
 always begin
     #10
     clk <= ~clk;
@@ -19,10 +21,24 @@ delta_sigma #(.DATA_SIZE(3)) dut  (
     .reset(reset),
     .dataOut(dataOut)
 );
-    
-initial begin
-    $monitor("dataOut=%b",dataOut);
+
+reg [4:0] counter = 0;
+reg [8:0] result = 0;
+
+always @(posedge clk) begin
+    $display("dataOut=%b",dataOut);
+    counter = counter + 1;
+    if (counter < 10) begin 
+        result <= (result << 1) + dataOut;
+    end
+    else begin
+        assert (result == 9'b100100101 );
+        $stop;
+    end
 end
+
+    
+
 
 endmodule
 

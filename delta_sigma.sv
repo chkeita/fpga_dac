@@ -6,35 +6,17 @@ module delta_sigma #(parameter DATA_SIZE = 32) (
 );
 
     localparam UpperIndex    = (DATA_SIZE-1+2);
-    reg [UpperIndex:0 ] DeltaAdder_d = 0;
-    reg [UpperIndex:0 ] DeltaAdder_q = 0;
-    reg [UpperIndex:0 ] SigmaAdder_d = 0;
-    reg [UpperIndex:0 ] SigmaAdder_q = 0;
-    reg [($clog2(DATA_SIZE)-1):0]counter = 0;
-    reg [UpperIndex:0 ] outRegister = 0;
+    wire    [UpperIndex:0 ] SigmaAdder;
+    wire    [UpperIndex:0 ] DeltaAdder;
+    
+    reg     [UpperIndex:0 ] SigmaRegister = 1 << DATA_SIZE + 1; // initializing to 100..00
 
-    assign dataOut = outRegister; //LSB
+    assign dataOut = SigmaRegister >> (DATA_SIZE + 1); //LSB
+    assign DeltaAdder = (dataOut == 0 ? 0 : 2'b11 << DATA_SIZE) + data ;  
+    assign SigmaAdder = DeltaAdder + SigmaRegister;
 
     always @(posedge clk) begin
-        DeltaAdder_q <= DeltaAdder_d;
-        SigmaAdder_q <= SigmaAdder_d;
-
-	if (counter == 0) begin 
-            // reset adders 
-            DeltaAdder_d = (2'b11 << DATA_SIZE) + data; /// mask and datas
-            SigmaAdder_d = 2'b01 << DATA_SIZE;
-        end
-
-       if (dataOut == 0)begin
-           DeltaAdder_d = 0;
-       end
-       else begin
-           DeltaAdder_d = 2'b11 << DATA_SIZE;
-           //1?scomplement of the highest N bit number, sign-extendedto N+2 bits
-       end
-       SigmaAdder_d = SigmaAdder_d + dataOut;
-       counter = counter +1;
-
+        SigmaRegister = SigmaAdder;        
     end
 
 endmodule

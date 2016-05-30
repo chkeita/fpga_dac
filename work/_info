@@ -10,7 +10,7 @@ cModel Technology
 dC:/altera/15.1
 vdelta_sigma
 Z0 DXx6 sv_std 3 std 0 22 WmjPaeP=7F5?QFXzJ>D[Q2
-Z1 !s110 1464492313
+Z1 !s110 1464581509
 !i10b 1
 !s100 k8MzX6?mI1cj3H]hjOk]`1
 I?hm>aH_=BgYjn^@`BNS6o3
@@ -26,7 +26,7 @@ Z5 OV;L;10.4b;61
 r1
 !s85 0
 31
-Z6 !s108 1464492313.000000
+Z6 !s108 1464581509.000000
 !s107 C:/dev/fpga_dac/src/delta_sigma.sv|
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/dev/fpga_dac/src/delta_sigma.sv|
 !i113 1
@@ -41,7 +41,7 @@ R2
 !s105 delta_sigma_tb_sv_unit
 S1
 R3
-R4
+w1464573526
 8C:/dev/fpga_dac/src/delta_sigma_tb.sv
 FC:/dev/fpga_dac/src/delta_sigma_tb.sv
 L0 3
@@ -125,6 +125,27 @@ R6
 !s90 -reportprogress|300|-work|work|-sv|-stats=none|C:/dev/fpga_dac/src/i2s_receiver_tb.sv|
 !i113 1
 R7
+vreadFile
+!s110 1464581859
+!i10b 1
+!s100 Dc>SV1a^<TQhK0Wad8lIQ1
+I^?oXA>=P9_YRIUhA2>b0]1
+R2
+R3
+w1464581788
+8C:/dev/fpga_dac/src/readFile.v
+FC:/dev/fpga_dac/src/readFile.v
+L0 49
+R5
+r1
+!s85 0
+31
+!s108 1464581859.000000
+!s107 C:/dev/fpga_dac/src/readFile.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/dev/fpga_dac/src/readFile.v|
+!i113 1
+o-work work
+nread@file
 vupsampler
 R0
 !s110 1463982589

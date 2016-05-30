@@ -92,5 +92,7 @@ Status API Training Shop Blog About
 /work/*.qpg
 /work/*.qdb
 *.wlf
+/node_modules/*
+
 
 

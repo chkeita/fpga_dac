@@ -1,0 +1,30 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+    "version": "0.1.0",
+    "command": "gulp",
+    "isShellCommand": true,
+    "args": [
+        "--no-color"
+    ],
+    "tasks": [
+        {
+            "taskName": "compile",
+            "args": ["compile","--filename" ,"${file}"],
+            "isBuildCommand": true
+//             "problemMatcher":{
+// //                "owner": "cpp",
+//                 "fileLocation": ["absolute"],
+//                 "pattern": {
+//                     "regexp": "\\*{2} (Error): (.+?)\\((\\d+)\\):(.*)",
+//                     "file": 2,
+//                     "line": 3,
+//                     //"column": 3,
+//                     "severity": 1,
+//                     "message": 4
+//                 } 
+            
+//             }    
+        }
+    ]
+}

@@ -46,35 +46,59 @@
 //                                number.
 // 44        *   Data             The actual sound data.
 
+
 module readFile ();
     
     integer file;
     integer i;
-    integer count;
-    reg [31:0] chunkSize;
-    integer numberOfChannel;
-    integer sampleRate;
-    integer bitsPerSample;
-    integer dataSize;
+    int chunkSize;
+    int format;
+    shortint numberOfChannel;
+    int sampleRate;
+    shortint bitsPerSample;
+    int dataSize;
+    localparam SEEK_ORG = 0;
     localparam SEEK_CUR = 1;
-    reg [7:0] memory [0:15] ;
+    byte memory [] ;
+    
+    byte int16 [0:1]; 
+    function shortint readShort (int offset, integer file);
+        begin
+            $fseek(file,offset,SEEK_ORG);
+            $fread(int16, file);
+            readShort = { << shortint {int16[1], int16[0]}};
+        end
+    endfunction
+    
+    byte int32 [0:3]; 
+    function int readInt(int offset, integer file);
+        begin
+            $fseek(file,offset,SEEK_ORG);
+            $fread(int32, file);
+            readInt = { << int {int32[3], int32[2], int32[1], int32[0]}};
+        end
+    endfunction
+    
     initial begin 
-        file = $fopen("testData\\440.wav", "rb") ;
-        count = $fseek(file,4,SEEK_CUR);
-        count = $fread(chunkSize, file);
-        count = $fread(numberOfChannel, file, 22, 2);
-        count = $fread(sampleRate, file, 24, 4);
-        count = $fread(bitsPerSample, file, 34, 2);
-        count = $fread(dataSize, file, 40, 4);
-        count = $fread(memory, file, 44,dataSize);
+        file = $fopen("testData\\440.wav", "rb");
+        chunkSize = readInt(4,file);
+        format = readInt(8, file);
+        numberOfChannel = readShort(22, file);
+        sampleRate = readInt(24, file);
+        bitsPerSample = readShort(34, file);
+        dataSize = readInt(40, file);
+        memory = new [dataSize];
+        
+        $fread(memory, file);
         $display("file descriptor: %b", file);
-        $display("count: %b", count);
         $display("chunkSize: %d",chunkSize);
         $display("numberOfChannel: %d",numberOfChannel);
         $display("sampleRate: %d",sampleRate);
-        $display("bitsPerSample: %d",bitsPerSample);
+        $display("bitsPerSample: %d", bitsPerSample);
         $display("dataSize: %d",dataSize);
-        for (i = 0; i < 16;i = i+1 ) begin
+        
+        
+        for (i = 0; i < dataSize;i = i+(numberOfChannel*(bitsPerSample/8)) ) begin
             $display("memory %d : %h", i, memory[i]);
         end 
     end

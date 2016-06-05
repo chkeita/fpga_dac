@@ -1,6 +1,6 @@
 //`timescale 1 ps / 1 ps
 // synopsys translate_on
-module deltaSigma_tb (
+module delta_sigma_tb (
     );
     
     reg clk = 0;

@@ -25,6 +25,25 @@
 //                 } 
             
 //             }    
+        },
+        {
+            "taskName": "compileAndRun",
+            "args": ["compileAndRun","--filename" ,"${file}"],
+            "isBuildCommand": false,
+            "isTestCommand": true
+//             "problemMatcher":{
+// //                "owner": "cpp",
+//                 "fileLocation": ["absolute"],
+//                 "pattern": {
+//                     "regexp": "\\*{2} (Error): (.+?)\\((\\d+)\\):(.*)",
+//                     "file": 2,
+//                     "line": 3,
+//                     //"column": 3,
+//                     "severity": 1,
+//                     "message": 4
+//                 } 
+            
+//             }    
         }
     ]
 }

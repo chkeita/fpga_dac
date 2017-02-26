@@ -44,6 +44,13 @@
 //                 } 
             
 //             }    
+        },
+
+        {
+            "taskName": "compileAndRunIcarus",
+            "args": ["compileAndRunIcarus","--filename" ,"${file}"],
+            "isBuildCommand": false,
+            "isTestCommand": true
         }
     ]
 }

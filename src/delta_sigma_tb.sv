@@ -1,5 +1,6 @@
 //`timescale 1 ps / 1 ps
 // synopsys translate_on
+`include "./delta_sigma.sv"
 module delta_sigma_tb (
     );
     
@@ -7,8 +8,6 @@ module delta_sigma_tb (
     reg [2:0] data = 3'b011;
     reg reset = 0;
     wire dataOut;
-    
-
 
 always begin
     #10
@@ -31,10 +30,19 @@ always @(posedge clk) begin
     if (counter < 10) begin 
         result <= (result << 1) + dataOut;
     end
-    else begin
-        assert (result == 9'b100100101 );
-        $stop;
-    end
+    else 
+        begin
+            // icarus verilog does not seem to support assert
+            // assert (result == 9'b100100101 );
+            if (result == 9'b100100101) begin
+                $display("success");
+                $finish;
+            end
+            else begin
+                $display("failed");
+                $finish;
+            end
+        end
 end
 
     

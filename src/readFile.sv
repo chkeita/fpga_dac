@@ -45,10 +45,11 @@
 //                                of the read of the subchunk following this 
 //                                number.
 // 44        *   Data             The actual sound data.
+//`define DATA_SIZE 16
 
-
-module readFile ();
-    
+/// Gnerate a ltspice pwl file by reading the content of a wav file and feeding it to the 
+/// delta sigma module. 
+module generatePwlFile #( parameter DATA_SIZE = 16 ) ();
     integer file;
     integer i;
     int chunkSize;
@@ -60,6 +61,18 @@ module readFile ();
     localparam SEEK_ORG = 0;
     localparam SEEK_CUR = 1;
     byte memory [] ;
+    integer sampleCount = 0;
+
+    string leftPwl = "testData\\440LeftPWL.txt";
+    string rightPwl = "testData\\440RightPWL.txt";
+
+    reg [DATA_SIZE - 1:0] dataLeft;
+    reg [DATA_SIZE - 1:0] dataRight;
+    wire dataLeftOut;
+    wire dataRightOut;
+    reg reset = 0;
+    reg clk = 0;
+
     
     byte int16 [0:1]; 
     function shortint readShort (int offset, integer file);
@@ -78,8 +91,48 @@ module readFile ();
             readInt = { << int {int32[3], int32[2], int32[1], int32[0]}};
         end
     endfunction
+
+    integer appendFile;
+    function int appendToFile(string filename, string line);
+        begin 
+            appendFile = $fopen(filename, "a");
+            $fwrite(appendFile, line);
+            $fclose(filename);
+        end
+    endfunction
+
+    delta_sigma #(.DATA_SIZE(DATA_SIZE)) left  (
+        .data(dataLeft),
+        .clk(clk),
+        .reset(reset),
+        .dataOut(dataLeftOut)
+    );
+
+    delta_sigma #(.DATA_SIZE(DATA_SIZE)) right  (
+        .data(dataRight),
+        .clk(clk),
+        .reset(reset),
+        .dataOut(dataRightOut)
+    );
+
+    int interval;
+    longint picoInSecond = 64'd1000000000000;
+    always @(posedge clk) begin
+        assert (sampleRate > 0);
+        interval = picoInSecond / sampleRate;
+        appendToFile(leftPwl, $sformatf("\n+%0Dp %d", interval, dataLeftOut));
+        appendToFile(rightPwl, $sformatf("\n+%0Dp %d", interval, dataRightOut));
+    end
     
+    integer outputFile;
     initial begin 
+
+        // clearing the content of the output files
+        outputFile = $fopen(leftPwl, "w");
+        $fclose(outputFile);
+        outputFile = $fopen(rightPwl, "w");
+        $fclose(outputFile);
+
         file = $fopen("testData\\440.wav", "rb");
         chunkSize = readInt(4,file);
         format = readInt(8, file);
@@ -96,10 +149,30 @@ module readFile ();
         $display("sampleRate: %d",sampleRate);
         $display("bitsPerSample: %d", bitsPerSample);
         $display("dataSize: %d",dataSize);
+
+        assert (DATA_SIZE == bitsPerSample );
         
         
-        for (i = 0; i < dataSize;i = i+(numberOfChannel*(bitsPerSample/8)) ) begin
+        for (i = 0 ; i < dataSize && sampleCount < 10; i = i+(numberOfChannel*(bitsPerSample/8)) ) begin
             $display("memory %d : %h", i, memory[i]);
+
+            // we assume two channels
+            for (int j = 0; j<(bitsPerSample/8); j++) begin
+                dataLeft = (dataLeft << 8) | memory[i+j*8];
+            end 
+            
+            for (int j = 2; (j+2) <(bitsPerSample/8); j++) begin
+                dataRight = (dataRight << 8) | memory[i+j*8];
+            end
+
+            for (int k = 0; k < bitsPerSample+2; k++) begin 
+                // making sure enough time has passed so the simulator will detect the clock change -
+                // this depends on the value of `timesacele at eh begining of the file
+                #10 
+                clk = ~clk;
+            end
+            
+            sampleCount = sampleCount+1;
         end 
     end
 endmodule

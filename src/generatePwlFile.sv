@@ -1,6 +1,6 @@
 //`timescale 1 ps / 1 ps
 // synopsys translate_on
-
+`include "./delta_sigma.sv"
 
 // 0         4   ChunkID          Contains the letters "RIFF" in ASCII form
 //                                (0x52494646 big-endian form).
@@ -49,9 +49,9 @@
 
 /// Gnerate a ltspice pwl file by reading the content of a wav file and feeding it to the 
 /// delta sigma module. 
-module generatePwlFile #( parameter DATA_SIZE = 16 ) ();
+
+class WaveFileReader;
     integer file;
-    integer i;
     int chunkSize;
     int format;
     shortint numberOfChannel;
@@ -60,118 +60,139 @@ module generatePwlFile #( parameter DATA_SIZE = 16 ) ();
     int dataSize;
     localparam SEEK_ORG = 0;
     localparam SEEK_CUR = 1;
-    byte memory [] ;
-    integer sampleCount = 0;
+    int dataOffset = 44;
+    int interval;
+    longint picoInSecond = 64'd1000000000000;
 
-    string leftPwl = "testData\\440LeftPWL.txt";
-    string rightPwl = "testData\\440RightPWL.txt";
+    function new(string fileName);
+        file = $fopen(fileName, "rb");
+        chunkSize = readInt(4);
+        format = readInt(8);
+        numberOfChannel = readShort(22);
+        sampleRate = readInt(24);
+        bitsPerSample = readShort(34);
+        dataSize = readInt(40);
+        interval = picoInSecond / sampleRate;
+    endfunction
 
-    reg [DATA_SIZE - 1:0] dataLeft;
-    reg [DATA_SIZE - 1:0] dataRight;
-    wire dataLeftOut;
-    wire dataRightOut;
-    reg reset = 0;
-    reg clk = 0;
-
+    byte bbyte [1]; 
+    function byte readByte (int offset);
+        $fseek(file, offset, SEEK_ORG);
+        $fread(bbyte, file);
+        readByte = bbyte[0];
+    endfunction
     
     byte int16 [0:1]; 
-    function shortint readShort (int offset, integer file);
-        begin
-            $fseek(file,offset,SEEK_ORG);
-            $fread(int16, file);
-            readShort = { << shortint {int16[1], int16[0]}};
-        end
+    function shortint readShort (int offset);
+        $fseek(file, offset, SEEK_ORG);
+        $fread(int16, file);
+        readShort = { << shortint {int16[1], int16[0]}};
     endfunction
     
     byte int32 [0:3]; 
-    function int readInt(int offset, integer file);
-        begin
-            $fseek(file,offset,SEEK_ORG);
-            $fread(int32, file);
-            readInt = { << int {int32[3], int32[2], int32[1], int32[0]}};
-        end
+    function int readInt(int offset);
+        $fseek(file,offset,SEEK_ORG);
+        $fread(int32, file);
+        readInt = { << int {int32[3], int32[2], int32[1], int32[0]}};
     endfunction
 
-    integer appendFile;
-    function int appendToFile(string filename, string line);
-        begin 
-            appendFile = $fopen(filename, "a");
-            $fwrite(appendFile, line);
-            $fclose(filename);
-        end
+    function byte readNextDataByte ();
+        readNextDataByte = readByte(dataOffset++);
+    endfunction 
+
+    function int close();
+        $fclose(file);
+        close = 0;
     endfunction
+endclass
+
+class PwlFileWriter;
+    string _fileName;
+    integer file;
+    int _interval;
+    function new(string fileName, int interval);
+        _interval = interval;
+        _fileName = fileName;
+        file = $fopen(_fileName, "w");
+        $fclose(file);
+    endfunction
+
+    function int appendToFile(string line);
+        file = $fopen(_fileName, "a");
+        $fwrite(file, line);
+        $fclose(file);
+    endfunction
+
+    function addLine(int voltage);
+        appendToFile($sformatf("\n+%0Dp %d", _interval, voltage));
+    endfunction
+
+endclass
+
+module generatePwlFile #( parameter DATA_SIZE = 16 ) ();
+    integer sampleCount = 0;
+    WaveFileReader waveFile;
+    PwlFileWriter pmlWriters [];
+
+    reg [DATA_SIZE - 1:0] channelData [2];
+    wire channelOut [2];
+    
+    reg reset = 0;
+    reg clk = 0;
 
     delta_sigma #(.DATA_SIZE(DATA_SIZE)) left  (
-        .data(dataLeft),
+        .data(channelData[0]),
         .clk(clk),
         .reset(reset),
-        .dataOut(dataLeftOut)
+        .dataOut(channelOut[0])
     );
 
     delta_sigma #(.DATA_SIZE(DATA_SIZE)) right  (
-        .data(dataRight),
+        .data(channelData[1]),
         .clk(clk),
         .reset(reset),
-        .dataOut(dataRightOut)
+        .dataOut(channelOut[1])
     );
 
-    int interval;
-    longint picoInSecond = 64'd1000000000000;
     always @(posedge clk) begin
-        assert (sampleRate > 0);
-        interval = picoInSecond / sampleRate;
-        appendToFile(leftPwl, $sformatf("\n+%0Dp %d", interval, dataLeftOut));
-        appendToFile(rightPwl, $sformatf("\n+%0Dp %d", interval, dataRightOut));
+        for (int channelIndex = 0; channelIndex < waveFile.numberOfChannel; channelIndex++) begin
+            pmlWriters[channelIndex].addLine(channelOut[channelIndex]);
+        end
     end
     
-    integer outputFile;
     initial begin 
 
-        // clearing the content of the output files
-        outputFile = $fopen(leftPwl, "w");
-        $fclose(outputFile);
-        outputFile = $fopen(rightPwl, "w");
-        $fclose(outputFile);
+        waveFile        = new("testData\\440.wav");
 
-        file = $fopen("testData\\440.wav", "rb");
-        chunkSize = readInt(4,file);
-        format = readInt(8, file);
-        numberOfChannel = readShort(22, file);
-        sampleRate = readInt(24, file);
-        bitsPerSample = readShort(34, file);
-        dataSize = readInt(40, file);
-        memory = new [dataSize];
-        
-        $fread(memory, file);
-        $display("file descriptor: %b", file);
-        $display("chunkSize: %d",chunkSize);
-        $display("numberOfChannel: %d",numberOfChannel);
-        $display("sampleRate: %d",sampleRate);
-        $display("bitsPerSample: %d", bitsPerSample);
-        $display("dataSize: %d",dataSize);
+        $display("file descriptor: %b", waveFile.file);
+        $display("chunkSize: %d", waveFile.chunkSize);
+        $display("numberOfChannel: %d",waveFile.numberOfChannel);
+        $display("sampleRate: %d", waveFile.sampleRate);
+        $display("bitsPerSample: %d", waveFile.bitsPerSample);
+        $display("dataSize***: %d", waveFile.dataSize);
 
-        assert (DATA_SIZE == bitsPerSample );
-        
-        
-        for (i = 0 ; i < dataSize && sampleCount < 10; i = i+(numberOfChannel*(bitsPerSample/8)) ) begin
-            $display("memory %d : %h", i, memory[i]);
+        assert (DATA_SIZE == waveFile.bitsPerSample );
+        pmlWriters = new [waveFile.numberOfChannel];
 
-            // we assume two channels
-            for (int j = 0; j<(bitsPerSample/8); j++) begin
-                dataLeft = (dataLeft << 8) | memory[i+j*8];
-            end 
-            
-            for (int j = 2; (j+2) <(bitsPerSample/8); j++) begin
-                dataRight = (dataRight << 8) | memory[i+j*8];
+        for (int channelIndex = 0; channelIndex < waveFile.numberOfChannel; channelIndex++) begin
+            $display("crating file :%0d", channelIndex+1);
+            pmlWriters[channelIndex] = new($sformatf("testData\\pwl%0d.txt", channelIndex+1), waveFile.interval);
+        end
+        
+        for (int i = 0 ; i < waveFile.dataSize && sampleCount < 10; i = i+(waveFile.numberOfChannel*(waveFile.bitsPerSample/8)) ) begin
+
+            for (int channelIndex = 0; channelIndex<waveFile.numberOfChannel; channelIndex++ ) begin
+                for (int chanelByteCount = 0; chanelByteCount<(waveFile.bitsPerSample/8); chanelByteCount++) begin
+                    channelData[channelIndex] = (channelData[channelIndex] << 8) | waveFile.readNextDataByte();
+                end 
             end
 
-            for (int k = 0; k < bitsPerSample+2; k++) begin 
+            for (int k = 0; k < waveFile.bitsPerSample+2; k++) begin 
                 // making sure enough time has passed so the simulator will detect the clock change -
                 // this depends on the value of `timesacele at eh begining of the file
                 #10 
                 clk = ~clk;
             end
-            
             sampleCount = sampleCount+1;
         end 
     end

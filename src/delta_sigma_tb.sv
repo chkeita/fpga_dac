@@ -1,8 +1,7 @@
 //`timescale 1 ps / 1 ps
 // synopsys translate_on
 `include "./delta_sigma.sv"
-module delta_sigma_tb (
-    );
+module delta_sigma_tb ();
     
     reg clk = 0;
     reg [2:0] data = 3'b011;

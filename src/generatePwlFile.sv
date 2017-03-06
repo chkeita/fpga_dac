@@ -110,10 +110,15 @@ class PwlFileWriter;
     string _fileName;
     integer file;
     int _interval;
+    int previousVoltage = 0;
+    // typical rise time of Cyclone V (https://www.altera.com/en_US/pdfs/literature/hb/cyclone-v/cv_51002.pdf)
+    int typicalRiseTimeInPico = 400;
+    
     function new(string fileName, int interval);
         _interval = interval;
         _fileName = fileName;
         file = $fopen(_fileName, "w");
+        appendToFile("0 0");
         $fclose(file);
     endfunction
 
@@ -124,7 +129,13 @@ class PwlFileWriter;
     endfunction
 
     function addLine(int voltage);
-        appendToFile($sformatf("\n+%0Dp %d", _interval, voltage));
+        if (voltage != previousVoltage) begin
+            appendToFile($sformatf("\n+%0Dp %d", _interval - typicalRiseTimeInPico, previousVoltage));
+            appendToFile($sformatf("\n+%0Dp %d", typicalRiseTimeInPico, voltage));
+            previousVoltage = voltage;
+        end else begin
+            appendToFile($sformatf("\n+%0Dp %d", _interval, voltage));
+        end
     endfunction
 
 endclass

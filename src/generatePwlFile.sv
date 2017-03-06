@@ -119,23 +119,26 @@ class PwlFileWriter;
         _fileName = fileName;
         file = $fopen(_fileName, "w");
         appendToFile("0 0");
-        $fclose(file);
     endfunction
 
     function int appendToFile(string line);
-        file = $fopen(_fileName, "a");
+        //file = $fopen(_fileName, "a");
         $fwrite(file, line);
-        $fclose(file);
+        //$fclose(file);
     endfunction
 
     function addLine(int voltage);
         if (voltage != previousVoltage) begin
-            appendToFile($sformatf("\n+%0Dp %d", _interval - typicalRiseTimeInPico, previousVoltage));
-            appendToFile($sformatf("\n+%0Dp %d", typicalRiseTimeInPico, voltage));
+            appendToFile($sformatf("\n+%0Dp %0D", _interval - typicalRiseTimeInPico, previousVoltage));
+            appendToFile($sformatf("\n+%0Dp %0D", typicalRiseTimeInPico, voltage));
             previousVoltage = voltage;
         end else begin
-            appendToFile($sformatf("\n+%0Dp %d", _interval, voltage));
+            appendToFile($sformatf("\n+%0Dp %0D", _interval, voltage));
         end
+    endfunction
+
+    function int close ();
+        $fclose(file);        
     endfunction
 
 endclass
@@ -144,6 +147,8 @@ module generatePwlFile #( parameter DATA_SIZE = 16 ) ();
     integer sampleCount = 0;
     WaveFileReader waveFile;
     PwlFileWriter pmlWriters [];
+    // duration of the genrated signal
+    int numberOfSeconds = 5;
 
     reg [DATA_SIZE - 1:0] channelData [2];
     wire channelOut [2];
@@ -186,11 +191,11 @@ module generatePwlFile #( parameter DATA_SIZE = 16 ) ();
         pmlWriters = new [waveFile.numberOfChannel];
 
         for (int channelIndex = 0; channelIndex < waveFile.numberOfChannel; channelIndex++) begin
-            $display("crating file :%0d", channelIndex+1);
+            $display("crating files :%0d", channelIndex+1);
             pmlWriters[channelIndex] = new($sformatf("testData\\pwl%0d.txt", channelIndex+1), waveFile.interval);
         end
         
-        for (int i = 0 ; i < waveFile.dataSize && sampleCount < 10; i = i+(waveFile.numberOfChannel*(waveFile.bitsPerSample/8)) ) begin
+        for (int i = 0 ; i < waveFile.dataSize && sampleCount < numberOfSeconds * waveFile.sampleRate; i = i+(waveFile.numberOfChannel*(waveFile.bitsPerSample/8)) ) begin
 
             for (int channelIndex = 0; channelIndex<waveFile.numberOfChannel; channelIndex++ ) begin
                 for (int chanelByteCount = 0; chanelByteCount<(waveFile.bitsPerSample/8); chanelByteCount++) begin
@@ -206,5 +211,9 @@ module generatePwlFile #( parameter DATA_SIZE = 16 ) ();
             end
             sampleCount = sampleCount+1;
         end 
+        for (int channelIndex = 0; channelIndex < waveFile.numberOfChannel; channelIndex++) begin
+            $display("closing files :%0d", channelIndex+1);
+            pmlWriters[channelIndex].close();
+        end
     end
 endmodule

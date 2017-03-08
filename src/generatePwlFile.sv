@@ -114,8 +114,8 @@ class PwlFileWriter;
     // typical rise time of Cyclone V (https://www.altera.com/en_US/pdfs/literature/hb/cyclone-v/cv_51002.pdf)
     int typicalRiseTimeInPico = 400;
     
-    function new(string fileName, int interval);
-        _interval = interval;
+    function new(string fileName, int sampleRate, int outputBits);
+        _interval = sampleRate/outputBits;
         _fileName = fileName;
         file = $fopen(_fileName, "w");
         appendToFile("0 0");
@@ -192,7 +192,7 @@ module generatePwlFile #( parameter DATA_SIZE = 16 ) ();
 
         for (int channelIndex = 0; channelIndex < waveFile.numberOfChannel; channelIndex++) begin
             $display("crating files :%0d", channelIndex+1);
-            pmlWriters[channelIndex] = new($sformatf("testData\\pwl%0d.txt", channelIndex+1), waveFile.interval);
+            pmlWriters[channelIndex] = new($sformatf("testData\\pwl%0d.txt", channelIndex+1), waveFile.interval, DATA_SIZE+2);
         end
         
         for (int i = 0 ; i < waveFile.dataSize && sampleCount < numberOfSeconds * waveFile.sampleRate; i = i+(waveFile.numberOfChannel*(waveFile.bitsPerSample/8)) ) begin

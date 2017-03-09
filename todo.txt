@@ -4,5 +4,5 @@ Add upsampler
 Add noise shaper
 Add digitel attenuator
 Add I2s receiver 
-Replace the octocoupler with something faster 
+x Replace the octocoupler with something faster 
 #currently replaced with 6N137

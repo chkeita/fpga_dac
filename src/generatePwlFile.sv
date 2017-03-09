@@ -62,7 +62,7 @@ class WaveFileReader;
     localparam SEEK_CUR = 1;
     int dataOffset = 44;
     int interval;
-    longint picoInSecond = 64'd1000000000000;
+    longint nanoInSecond = 64'd1000000000;
 
     function new(string fileName);
         file = $fopen(fileName, "rb");
@@ -72,7 +72,7 @@ class WaveFileReader;
         sampleRate = readInt(24);
         bitsPerSample = readShort(34);
         dataSize = readInt(40);
-        interval = picoInSecond / sampleRate;
+        interval = nanoInSecond / sampleRate;
     endfunction
 
     byte bbyte [1]; 
@@ -112,8 +112,10 @@ class PwlFileWriter;
     int _interval;
     int previousVoltage = 0;
     // typical rise time of Cyclone V (https://www.altera.com/en_US/pdfs/literature/hb/cyclone-v/cv_51002.pdf)
-    int typicalRiseTimeInPico = 400;
-    
+    //int typicalRiseTimeInPico = 400;
+    // number of period of time with save value
+    int periodAccumulator = 0; 
+
     function new(string fileName, int sampleRate, int outputBits);
         _interval = sampleRate/outputBits;
         _fileName = fileName;
@@ -129,11 +131,13 @@ class PwlFileWriter;
 
     function addLine(int voltage);
         if (voltage != previousVoltage) begin
-            appendToFile($sformatf("\n+%0Dp %0D", _interval - typicalRiseTimeInPico, previousVoltage));
-            appendToFile($sformatf("\n+%0Dp %0D", typicalRiseTimeInPico, voltage));
+            appendToFile($sformatf("\n+%0Dn %0D", ((periodAccumulator+1)*_interval) - 1, previousVoltage));
+            appendToFile($sformatf("\n+%0Dn %0D", 1, voltage));
             previousVoltage = voltage;
+            periodAccumulator = 0;
         end else begin
-            appendToFile($sformatf("\n+%0Dp %0D", _interval, voltage));
+            periodAccumulator = periodAccumulator+1;
+            //appendToFile($sformatf("\n+%0Dn %0D", _interval, voltage));
         end
     endfunction
 

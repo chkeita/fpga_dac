@@ -1,0 +1,8 @@
+x output opaamp is powered by 9v supply
+x Voltage regulator should aoutput 5V
+Add upsampler 
+Add noise shaper
+Add digitel attenuator
+Add I2s receiver 
+Replace the octocoupler with something faster 
+#currently replaced with 6N137

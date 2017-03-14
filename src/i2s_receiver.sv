@@ -2,22 +2,21 @@ module i2s_receiver #(parameter DATA_SIZE = 32) (
     input sck_clk,
     input wordSelect,
     input data,
-    output reg outputSelect,
-    output reg [(DATA_SIZE-1):0] leftData,
-    output reg [(DATA_SIZE-1):0] rightData
+    output reg [(DATA_SIZE-1):0] rightData = 0,
+    output reg [(DATA_SIZE-1):0] leftData = 0
 );
 
     localparam Left     = 0;
     localparam Right    = 1;
-    
-    always @(negedge sck_clk) begin 
+
+    always @(posedge sck_clk) begin 
         if (wordSelect == Right) begin
-            rightData       <= (rightData << 1) + data;
-            outputSelect    <= Left; // we activate the left Output when receiving the right data
+            rightData       = {rightData[(DATA_SIZE-2):0], data};
         end
-        else begin 
-            leftData        <= (leftData << 1) + data;
-            outputSelect    <= Right;
+    end
+    always @(posedge sck_clk) begin 
+        if (wordSelect == Left ) begin 
+            leftData        = {leftData[(DATA_SIZE-2):0], data};
         end
     end  
 

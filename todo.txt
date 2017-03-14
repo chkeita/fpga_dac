@@ -3,6 +3,6 @@ x Voltage regulator should aoutput 5V
 Add upsampler 
 Add noise shaper
 Add digitel attenuator
-Add I2s receiver 
+x Add I2s receiver 
 x Replace the octocoupler with something faster 
 #currently replaced with 6N137
